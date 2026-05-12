@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système de Gestion des Badges Étudiants - Contrôle d'Accès</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* En-tête */
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        /* Zone de contrôle badge */
+        .badge-control {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .badge-input-area {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .badge-input-area input {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .badge-input-area input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #48bb78;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 2px solid #f56565;
+        }
+
+        /* Grille cards */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        /* Formulaire ajout étudiant */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Tableau étudiants */
+        .students-table {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.85em;
+        }
+
+        /* Historique */
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+        }
+
+        .history-item.refused {
+            border-left-color: #f56565;
+        }
+
+        .history-time {
+            font-size: 0.8em;
+            color: #718096;
+        }
+
+        .history-detail {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .badge-input-area {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏫 Système de Gestion des Badges Étudiants</h1>
+            <p>Contrôle d'Accès aux Portes d'Entrée | Lecteur de Badge Intelligent</p>
+        </div>
+
+        <div class="badge-control">
+            <h2 style="margin-bottom: 15px;">📱 Lecteur de Badge</h2>
+            <div class="badge-input-area">
+                <input type="text" id="badgeCode" placeholder="Scannez ou entrez le code du badge (ex: BADGE001)" autocomplete="off">
+                <button class="btn btn-primary" onclick="checkAccess()">▶️ Valider l'Accès</button>
+                <button class="btn btn-success" onclick="simulateScan()">🎲 Simuler Scan</button>
+            </div>
+            <div id="statusMessage"></div>
+        </div>
+
+        <div class="grid-2">
+            <!-- Section Gestion des Étudiants -->
+            <div class="card">
+                <h2>👨‍🎓 Gestion des Étudiants</h2>
+                <div class="form-group">
+                    <label>Nom complet</label>
+                    <input type="text" id="studentName" placeholder="Ex: Jean Dupont">
+                </div>
+                <div class="form-group">
+                    <label>Code Badge (unique)</label>
+                    <input type="text" id="studentBadge" placeholder="Ex: BADGE001">
+                </div>
+                <div class="form-group">
+                    <label>Classe / Filière</label>
+                    <input type="text" id="studentClass" placeholder="Ex: BTP 2ème année">
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="addStudent()">➕ Ajouter</button>
+                    <button class="btn btn-warning" onclick="clearForm()">🔄 Nouveau</button>
+                </div>
+                
+                <div class="students-table" style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 10px;">📋 Liste des étudiants</h3>
+                    <table id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>Badge</th>
+                                <th>Nom</th>
+                                <th>Classe</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsList"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Section Historique des Accès -->
+            <div class="card">
+                <h2>📜 Historique des Entrées / Sorties</h2>
+                <div id="historyList" class="history-list">
+                    <p style="color: #999; text-align: center;">Aucun historique pour le moment</p>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="clearHistory()" style="margin-top: 15px; width: 100%;">🗑️ Effacer l'historique</button>
+            </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="card" style="margin-top: 25px;">
+            <h2>📊 Statistiques en temps réel</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 10px;">
+                    <div style="font-size: 2em; font-weight: bold; color: #667eea;" id="totalStudents">0</div>
+                    <div>Total Étudiants</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 10px;">
+                    <div style="font-size: 2em; font-weight: bold; color: #48bb78;" id="totalEntries">0</div>
+                    <div>Entrées aujourd'hui</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 10px;">
+                    <div style="font-size: 2em; font-weight: bold; color: #f56565;" id="totalRefused">0</div>
+                    <div>Accès Refusés</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données initiales
+        let students = [
+            { id: 1, name: "Jean Dupont", badge: "BADGE001", class: "BTP 1ère année" },
+            { id: 2, name: "Marie Martin", badge: "BADGE002", class: "BTP 2ème année" },
+            { id: 3, name: "Amadou Diallo", badge: "BADGE003", class: "Génie Civil" }
+        ];
+
+        let accessHistory = [];
+        let nextId = 4;
+
+        // Statistiques du jour
+        let todayEntries = 0;
+        let todayRefused = 0;
+
+        // Récupérer la date du jour
+        function getTodayDate() {
+            return new Date().toLocaleDateString('fr-FR');
+        }
+
+        // Formater l'heure
+        function getCurrentTime() {
+            return new Date().toLocaleTimeString('fr-FR');
+        }
+
+        // Ajouter un historique
+        function addToHistory(etudiant, status, message) {
+            const historyItem = {
+                id: Date.now(),
+                studentName: etudiant ? etudiant.name : "Inconnu",
+                badgeCode: etudiant ? etudiant.badge : "Badge invalide",
+                status: status, // 'granted' ou 'refused'
+                message: message,
+                time: getCurrentTime(),
+                date: getTodayDate()
+            };
+            accessHistory.unshift(historyItem); // Ajouter au début
+            
+            // Mettre à jour les stats
+            if (status === 'granted') {
+                todayEntries++;
+            } else {
+                todayRefused++;
+            }
+            
+            renderHistory();
+            updateStats();
+        }
+
+        // Vérifier l'accès
+        function checkAccess() {
+            const badgeCode = document.getElementById('badgeCode').value.trim().toUpperCase();
+            if (!badgeCode) {
+                showStatus("Veuillez entrer un code badge", "error");
+                return;
+            }
+
+            const student = students.find(s => s.badge.toUpperCase() === badgeCode);
+            const messageDiv = document.getElementById('statusMessage');
+            
+            if (student) {
+                // Accès autorisé
+                showStatus(`✅ ACCÈS AUTORISÉ - Bienvenue ${student.name} (${student.class})`, "success");
+                addToHistory(student, 'granted', `Accès autorisé - ${student.name}`);
+                
+                // Animation simulateur de porte
+                simulateDoorOpen();
+                
+                // Effacer le champ après validation
+                document.getElementById('badgeCode').value = '';
+            } else {
+                // Accès refusé
+                showStatus(`❌ ACCÈS REFUSÉ - Badge ${badgeCode} non reconnu`, "error");
+                addToHistory(null, 'refused', `Tentative d'accès refusée - Badge: ${badgeCode}`);
+                
+                // Effacer le champ
+                document.getElementById('badgeCode').value = '';
+            }
+        }
+
+        // Simuler l'ouverture de porte
+        function simulateDoorOpen() {
+            const messageDiv = document.getElementById('statusMessage');
+            const originalHTML = messageDiv.innerHTML;
+            messageDiv.innerHTML = '<div class="status-message status-success">🚪 Porte déverrouillée... Ouverture en cours...</div>';
+            setTimeout(() => {
+                messageDiv.innerHTML = originalHTML;
+            }, 2000);
+        }
+
+        // Afficher un message de statut
+        function showStatus(message, type) {
+            const messageDiv = document.getElementById('statusMessage');
+            const className = type === 'success' ? 'status-success' : 'status-error';
+            messageDiv.innerHTML = `<div class="status-message ${className}">${message}</div>`;
+            
+            // Disparition auto après 3 secondes
+            setTimeout(() => {
+                if (messageDiv.innerHTML.includes(message)) {
+                    messageDiv.innerHTML = '';
+                }
+            }, 3000);
+        }
+
+        // Ajouter un étudiant
+        function addStudent() {
+            const name = document.getElementById('studentName').value.trim();
+            const badge = document.getElementById('studentBadge').value.trim().toUpperCase();
+            const className = document.getElementById('studentClass').value.trim();
+            
+            if (!name || !badge || !className) {
+                alert("Veuillez remplir tous les champs");
+                return;
+            }
+            
+            // Vérifier si le badge existe déjà
+            if (students.some(s => s.badge === badge)) {
+                alert("Ce code badge existe déjà !");
+                return;
+            }
+            
+            const newStudent = {
+                id: nextId++,
+                name: name,
+                badge: badge,
+                class: className
+            };
+            
+            students.push(newStudent);
+            renderStudents();
+            clearForm();
+            updateStats();
+            showStatus(`Étudiant ${name} ajouté avec succès !`, "success");
+        }
+
+        // Modifier un étudiant
+        function editStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                document.getElementById('studentName').value = student.name;
+                document.getElementById('studentBadge').value = student.badge;
+                document.getElementById('studentClass').value = student.class;
+                
+                // Changer le bouton ajouter en bouton modifier
+                const addBtn = document.querySelector('.form-actions button:first-child');
+                addBtn.textContent = '✏️ Modifier';
+                addBtn.setAttribute('onclick', `updateStudent(${id})`);
+            }
+        }
+
+        // Mettre à jour un étudiant
+        function updateStudent(id) {
+            const name = document.getElementById('studentName').value.trim();
+            const badge = document.getElementById('studentBadge').value.trim().toUpperCase();
+            const className = document.getElementById('studentClass').value.trim();
+            
+            if (!name || !badge || !className) {
+                alert("Veuillez remplir tous les champs");
+                return;
+            }
+            
+            const index = students.findIndex(s => s.id === id);
+            if (index !== -1) {
+                // Vérifier si le nouveau badge n'est pas déjà utilisé par un autre étudiant
+                if (students.some(s => s.badge === badge && s.id !== id)) {
+                    alert("Ce code badge est déjà utilisé par un autre étudiant !");
+                    return;
+                }
+                
+                students[index] = { ...students[index], name, badge, class: className };
+                renderStudents();
+                clearForm();
+                resetAddButton();
+                updateStats();
+                showStatus(`Étudiant ${name} modifié avec succès !`, "success");
+            }
+        }
+
+        // Supprimer un étudiant
+        function deleteStudent(id) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer cet étudiant ?")) {
+                const student = students.find(s => s.id === id);
+                students = students.filter(s => s.id !== id);
+                renderStudents();
+                updateStats();
+                showStatus(`Étudiant ${student.name} supprimé`, "success");
+            }
+        }
+
+        // Réinitialiser le formulaire
+        function clearForm() {
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentBadge').value = '';
+            document.getElementById('studentClass').value = '';
+            resetAddButton();
+        }
+
+        // Remettre le bouton en mode "Ajouter"
+        function resetAddButton() {
+            const addBtn = document.querySelector('.form-actions button:first-child');
+            addBtn.textContent = '➕ Ajouter';
+            addBtn.setAttribute('onclick', 'addStudent()');
+        }
+
+        // Afficher la liste des étudiants
+        function renderStudents() {
+            const tbody = document.getElementById('studentsList');
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Aucun étudiant enregistré</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = students.map(student => `
+                <tr>
+                    <td><strong>${student.badge}</strong></td>
+                    <td>${student.name}</td>
+                    <td>${student.class}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-warning btn-sm" onclick="editStudent(${student.id})">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteStudent(${student.id})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Afficher l'historique
+        function renderHistory() {
+            const historyDiv = document.getElementById('historyList');
+            if (accessHistory.length === 0) {
+                historyDiv.innerHTML = '<p style="color: #999; text-align: center;">Aucun historique pour le moment</p>';
+                return;
+            }
+            
+            historyDiv.innerHTML = accessHistory.map(item => `
+                <div class="history-item ${item.status === 'refused' ? 'refused' : ''}">
+                    <div class="history-time">🕐 ${item.time} - ${item.date}</div>
+                    <div class="history-detail">
+                        ${item.status === 'granted' ? '✅' : '❌'} ${item.message}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Effacer l'historique
+        function clearHistory() {
+            if (confirm("Effacer tout l'historique ?")) {
+                accessHistory = [];
+                todayEntries = 0;
+                todayRefused = 0;
+                renderHistory();
+                updateStats();
+                showStatus("Historique effacé", "success");
+            }
+        }
+
+        // Simuler un scan aléatoire
+        function simulateScan() {
+            const randomBadges = ['BADGE001', 'BADGE002', 'BADGE003', 'BADGE999', 'BADGE004'];
+            const randomBadge = randomBadges[Math.floor(Math.random() * randomBadges.length)];
+            document.getElementById('badgeCode').value = randomBadge;
+            checkAccess();
+        }
+
+        // Mettre à jour les statistiques
+        function updateStats() {
+            document.getElementById('totalStudents').textContent = students.length;
+            document.getElementById('totalEntries').textContent = todayEntries;
+            document.getElementById('totalRefused').textContent = todayRefused;
+        }
+
+        // Support de la touche Entrée
+        document.getElementById('badgeCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAccess();
+            }
+        });
+
+        // Initialisation
+        renderStudents();
+        renderHistory();
+        updateStats();
+        
+        // Focus sur le champ badge
+        document.getElementById('badgeCode').focus();
+    </script>
+</body>
+</html>
